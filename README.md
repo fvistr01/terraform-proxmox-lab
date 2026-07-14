@@ -8,7 +8,7 @@ Goal: practise Terraform for the Terraform Associate cert using the home Proxmox
 
 Done:
 - Terraform installed on Mac Mini using Homebrew.
-- Local project created at `/Users/fvistro/homelab/terraform-proxmox-lab`.
+- Local project created at `/Users/xxxxxxx/homelab/terraform-proxmox-lab`.
 - bpg/proxmox Terraform provider configured.
 - Reusable VM module created.
 - Secrets are excluded from git using `.gitignore`.
@@ -25,22 +25,18 @@ Still approval-gated:
 
 Those actions change Proxmox infrastructure and should be approved separately before we run them.
 
-## Useful reference link
-
-The DEV article you shared is useful for the overall flow:
+## 
 1. Install Terraform locally.
 2. Create Proxmox Terraform role/user/token.
 3. Keep the token secret out of git.
 4. Use Terraform to clone a cloud-init template.
 
-I adapted the idea for your lab but used the newer `bpg/proxmox` provider instead of the older `telmate/proxmox` provider.
-
-## Suggested lab ranges
+## lab ranges
 
 - Template VM ID: `9000`
 - Terraform VM IDs: `9001-9099`
-- Terraform IPs: `192.0.2.90-192.0.2.99`
-- First VM: `tf-lab-01`, `192.0.2.91/24`
+- Terraform IPs: `10.xx.xx.90-10.xx.xx.99`
+- First VM: `tf-lab-01`, `10.xx.xx.91/24`
 
 ## Files
 
@@ -57,7 +53,7 @@ I adapted the idea for your lab but used the newer `bpg/proxmox` provider instea
 From the project directory:
 
 ```bash
-cd /Users/fvistro/homelab/terraform-proxmox-lab
+cd /Users/xxxxxx/homelab/terraform-proxmox-lab
 terraform init
 terraform fmt -recursive
 terraform validate
@@ -80,7 +76,7 @@ terraform destroy
 
 ## Security note
 
-Do not paste secrets into chat. Put the Proxmox token only in `terraform.tfvars` on your Mac.
+Put the Proxmox token only in `terraform.tfvars` on Mac.
 
 ## Next infrastructure steps, later
 
@@ -93,7 +89,7 @@ Do not paste secrets into chat. Put the Proxmox token only in `terraform.tfvars`
 
 ## Current status - API user and template setup completed
 
-Completed by Hermes on MiniBob:
+Completed on MiniBob:
 
 - Terraform installed and validated: v1.15.8 on darwin_arm64
 - Proxmox Terraform role created: `terraform-role`
@@ -167,7 +163,7 @@ Terraform does not automatically choose the Proxmox node. The script can recomme
 
 ### Generated placement file
 
-Run the capacity checker with `--write-auto-tfvars` to create/update `generated.auto.tfvars`. Terraform automatically loads this file. It must contain only non-secret generated values such as `proxmox_node`; API tokens stay in `terraform.tfvars`.
+Run the capacity checker with `--write-auto-tfvars` to create/update `generated.auto.tfvars`. Terraform automatically loads this file. It contain only non-secret generated values such as `proxmox_node`; API tokens stay in `terraform.tfvars`.
 
 ## Current storage alignment
 
