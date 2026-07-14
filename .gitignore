@@ -7,6 +7,7 @@ terraform.tfstate.*
 
 # Local variable files can contain API tokens/secrets
 terraform.tfvars
+terraform.tfvars.example
 *.auto.tfvars
 
 # Terraform crash logs and saved plans can contain sensitive values
