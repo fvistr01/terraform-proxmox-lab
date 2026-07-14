@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraform Proxmox Lab - Visual File Map</title>
+<style>
+:root { --bg:#020617; --panel:#0f172a; --panel2:#111c33; --text:#e5e7eb; --muted:#94a3b8; --cyan:#22d3ee; --green:#34d399; --amber:#fbbf24; --rose:#fb7185; --violet:#a78bfa; --line:#334155; }
+* { box-sizing:border-box } body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: radial-gradient(circle at 10% 0%, #10284a 0, #020617 45%, #010409 100%); color:var(--text); line-height:1.55; }
+header { position:sticky; top:0; z-index:10; padding:24px 28px 16px; background:rgba(2,6,23,.92); border-bottom:1px solid #1e293b; backdrop-filter:blur(10px); }
+main { max-width:1240px; margin:0 auto; padding:24px; } h1 { margin:0 0 6px; font-size:clamp(28px,4vw,46px); } h2 { margin-top:38px; padding-bottom:8px; border-bottom:1px solid #1e293b; color:#bfdbfe; } h3 { color:#dbeafe; }
+a { color:var(--cyan); text-decoration:none; margin-right:14px; white-space:nowrap; } code,pre { background:#030712; border:1px solid #1e293b; border-radius:8px; } code { padding:2px 6px; } pre { padding:14px; overflow:auto; max-height:460px; color:#d1fae5; }
+table { width:100%; border-collapse:collapse; background:rgba(15,23,42,.85); margin:14px 0; } th,td { border:1px solid #263449; padding:10px; text-align:left; vertical-align:top; } th { background:#142038; color:#dbeafe; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; } .card { background:linear-gradient(180deg,#0f172a,#08111f); border:1px solid #223047; border-radius:16px; padding:16px; box-shadow:0 12px 35px rgba(0,0,0,.25); }
+.metric { font-size:32px; font-weight:800; color:var(--green); } .muted { color:var(--muted); } .ok { color:var(--green); font-weight:700; } .warn { color:var(--amber); font-weight:700; } .danger { color:var(--rose); font-weight:700; }
+.callout { border-left:4px solid var(--cyan); background:rgba(34,211,238,.08); padding:12px 16px; border-radius:10px; margin:16px 0; } .warning { border-left-color:var(--amber); background:rgba(251,191,36,.09); } .dangerbox { border-left-color:var(--rose); background:rgba(251,113,133,.09); }
+.pill { display:inline-block; padding:4px 9px; margin:4px; border:1px solid #334155; border-radius:999px; background:#0b1220; color:#c7d2fe; } details { margin:12px 0; } summary { cursor:pointer; color:#93c5fd; font-weight:700; padding:8px 0; }
+.diagram { width:100%; background:#020617; border:1px solid #1e293b; border-radius:16px; overflow:auto; } svg text { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; fill:#e5e7eb; } .small { font-size:12px; } .tiny { font-size:10px; fill:#94a3b8; }
+</style></head><body>
+<header><h1>Terraform Proxmox Homelab - Visual File Map</h1><div class="muted">Updated: 2026-07-14 11:09 AEST · Project: <code>/Users/fvistro/homelab/terraform-proxmox-lab</code></div><nav><a href="#status">Status</a><a href="#bigpicture">Big Picture</a><a href="#files">Files</a><a href="#flow">Arrows</a><a href="#vms">5 VMs</a><a href="#destroy">Destroy/Scale Down</a><a href="#code">Code</a><a href="#commands">Commands</a><a href="#safety">Safety</a></nav></header>
+<main>
+<section id="status"><div class="grid"><div class="card"><div class="metric">5 VMs</div><p>Current desired lab size: <code>vm_count = 5</code></p></div><div class="card"><div class="metric">4 add</div><p>Terraform plan wants to add <code>tf_lab_02</code> to <code>tf_lab_05</code>.</p></div><div class="card"><div class="metric">0 destroy</div><p>Existing <code>tf_lab_01</code> / VMID <code>9001</code> is preserved.</p></div><div class="card"><div class="metric">OK</div><p><code>terraform validate</code> passed. Latest plan: <code>4 to add, 0 to change, 0 to destroy</code>.</p></div></div><div class="callout warning"><b>Important:</b> this page documents the config. I have not run <code>terraform apply</code>. Applying would create/change Proxmox VMs and needs your explicit approval.</div></section>
+<section id="bigpicture"><h2>1. Big picture: what the Terraform folder does</h2><p>This folder is a small Terraform lab that talks to Proxmox and clones Ubuntu/cloud-init VMs from template VM <code>9000</code>. The key idea is simple:</p><p><span class="pill">terraform.tfvars says vm_count = 5</span> <span class="pill">main.tf calculates 5 VM definitions</span> <span class="pill">modules/vm creates one VM per definition</span> <span class="pill">Proxmox receives clone requests</span></p><div class="diagram"><svg viewBox="0 0 1120 520" width="1120" height="520"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22d3ee"/></marker><marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/></pattern></defs><rect width="1120" height="520" fill="url(#grid)"/><line x1="170" y1="130" x2="330" y2="130" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)"/><line x1="470" y1="130" x2="620" y2="130" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)"/><line x1="760" y1="130" x2="930" y2="130" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)"/><line x1="640" y1="255" x2="340" y2="255" stroke="#34d399" stroke-width="2" marker-end="url(#arrow2)"/><line x1="640" y1="290" x2="340" y2="370" stroke="#34d399" stroke-width="2" marker-end="url(#arrow2)"/><rect x="35" y="70" width="135" height="120" rx="10" fill="#0f172a" stroke="#22d3ee"/><text x="55" y="105" class="small">terraform.tfvars</text><text x="55" y="130" class="tiny">vm_count = 5</text><text x="55" y="150" class="tiny">VMID/IP starts</text><text x="55" y="170" class="tiny">secrets local only</text><rect x="330" y="70" width="145" height="120" rx="10" fill="#0f172a" stroke="#a78bfa"/><text x="360" y="105" class="small">main.tf</text><text x="350" y="130" class="tiny">range(vm_count)</text><text x="350" y="150" class="tiny">for_each map</text><text x="350" y="170" class="tiny">tf_lab_01..05</text><rect x="620" y="70" width="145" height="120" rx="10" fill="#0f172a" stroke="#34d399"/><text x="645" y="105" class="small">module/vm</text><text x="640" y="130" class="tiny">one reusable VM</text><text x="640" y="150" class="tiny">clone + cloud-init</text><text x="640" y="170" class="tiny">CPU/RAM/disk/NIC</text><rect x="930" y="70" width="145" height="120" rx="10" fill="#0f172a" stroke="#fbbf24"/><text x="965" y="105" class="small">Proxmox</text><text x="955" y="130" class="tiny">template 9000</text><text x="955" y="150" class="tiny">target proxserver1</text><text x="955" y="170" class="tiny">creates VMs</text><rect x="650" y="240" width="185" height="95" rx="10" fill="#0f172a" stroke="#fb7185"/><text x="670" y="270" class="small">capacity script</text><text x="670" y="295" class="tiny">read-only Proxmox check</text><text x="670" y="315" class="tiny">writes generated.auto.tfvars</text><rect x="155" y="225" width="185" height="70" rx="10" fill="#0f172a" stroke="#34d399"/><text x="175" y="255" class="small">generated.auto.tfvars</text><text x="185" y="277" class="tiny">proxmox_node = proxserver1</text><rect x="155" y="345" width="185" height="80" rx="10" fill="#0f172a" stroke="#34d399"/><text x="180" y="378" class="small">Terraform auto-load</text><text x="185" y="400" class="tiny">*.auto.tfvars loaded</text></svg></div></section>
+<section id="files"><h2>2. Files under the Terraform location</h2><p>The folder is about 27 MB, but almost all of that is the generated <code>.terraform</code> provider cache. The human-edited files are small.</p><table><tr><th>Path</th><th>Purpose</th><th>Plain-English explanation</th></tr><tr><td><code>README.md</code></td><td>Human guide / notes</td><td>Explains the lab goal and command flow. Safe to read.</td></tr>
+<tr><td><code>docs/index.html</code></td><td>This webpage</td><td>The visual documentation page served on port 9097.</td></tr>
+<tr><td><code>versions.tf</code></td><td>Terraform/provider version pin</td><td>Requires Terraform &gt;= 1.6.0 and bpg/proxmox provider.</td></tr>
+<tr><td><code>providers.tf</code></td><td>Proxmox provider login</td><td>Connects Terraform to the Proxmox API using endpoint + token variable.</td></tr>
+<tr><td><code>variables.tf</code></td><td>Root input variables</td><td>Defines vm_count, VMID/IP start points, template, CPU, RAM, disk, bridge, SSH user/key.</td></tr>
+<tr><td><code>terraform.tfvars</code></td><td>Live variable values: SECRET</td><td>Current values including API token; not shown in full on this page.</td></tr>
+<tr><td><code>terraform.tfvars.example</code></td><td>Safe example variables</td><td>Template for recreating terraform.tfvars with placeholders.</td></tr>
+<tr><td><code>generated.auto.tfvars</code></td><td>Auto-selected target node</td><td>Automatically loaded by Terraform; currently chooses proxserver1.</td></tr>
+<tr><td><code>main.tf</code></td><td>Fleet generator</td><td>Builds local.generated_lab_vms using range(vm_count), then calls module/vm once per VM.</td></tr>
+<tr><td><code>outputs.tf</code></td><td>Root output</td><td>Summarises created VM names, VMIDs, and IPs after apply.</td></tr>
+<tr><td><code>modules/vm/main.tf</code></td><td>Reusable VM module resource</td><td>Defines one Proxmox VM: clone, CPU, RAM, disk, NIC, cloud-init user and IP.</td></tr>
+<tr><td><code>modules/vm/variables.tf</code></td><td>Module inputs</td><td>Inputs passed from root module into the VM module.</td></tr>
+<tr><td><code>modules/vm/outputs.tf</code></td><td>Module outputs</td><td>Returns name, VMID, and IP for each VM.</td></tr>
+<tr><td><code>modules/vm/versions.tf</code></td><td>Module provider requirement</td><td>Keeps the module compatible with bpg/proxmox.</td></tr>
+<tr><td><code>scripts/check-proxmox-capacity.py</code></td><td>Read-only placement helper</td><td>Checks Proxmox node capacity via AWX/proxmox SSH and writes generated.auto.tfvars.</td></tr>
+<tr><td><code>.gitignore</code></td><td>Safety ignore list</td><td>Prevents secrets/state/provider cache/plan files from being committed.</td></tr>
+<tr><td><code>.terraform.lock.hcl</code></td><td>Provider lock file</td><td>Pins exact downloaded provider checksums.</td></tr>
+<tr><td><code>.terraform/</code></td><td>Provider cache</td><td>Downloaded provider binaries; generated by terraform init, not edited by hand.</td></tr>
+<tr><td><code>terraform.tfstate / backup</code></td><td>State files: SENSITIVE</td><td>Tracks real infrastructure mappings. Do not publish/edit by hand.</td></tr>
+<tr><td><code>tf-lab-01.plan / tf-lab-fleet.plan</code></td><td>Saved plan files</td><td>Binary Terraform execution plans from previous plan runs.</td></tr></table></section>
+<section id="flow"><h2>3. File structure with arrows</h2><div class="diagram"><svg viewBox="0 0 1120 760" width="1120" height="760"><defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22d3ee"/></marker><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/></pattern></defs><rect width="1120" height="760" fill="url(#g)"/><line x1="250" y1="125" x2="455" y2="125" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><line x1="250" y1="250" x2="455" y2="170" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><line x1="250" y1="365" x2="455" y2="205" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><line x1="620" y1="170" x2="780" y2="170" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><line x1="895" y1="260" x2="895" y2="355" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><line x1="895" y1="520" x2="895" y2="615" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/><rect x="45" y="70" width="205" height="110" rx="10" fill="#0f172a" stroke="#fbbf24"/><text x="70" y="105" class="small">versions.tf</text><text x="70" y="130" class="tiny">Terraform &gt;= 1.6</text><text x="70" y="150" class="tiny">bpg/proxmox provider</text><rect x="45" y="215" width="205" height="110" rx="10" fill="#0f172a" stroke="#fbbf24"/><text x="70" y="250" class="small">providers.tf</text><text x="70" y="275" class="tiny">Proxmox endpoint</text><text x="70" y="295" class="tiny">API token variable</text><rect x="45" y="345" width="205" height="125" rx="10" fill="#0f172a" stroke="#a78bfa"/><text x="70" y="380" class="small">terraform.tfvars</text><text x="70" y="405" class="tiny">vm_count=5</text><text x="70" y="425" class="tiny">start VMID/IP</text><text x="70" y="445" class="tiny">SECRET - keep local</text><rect x="455" y="85" width="170" height="170" rx="10" fill="#0f172a" stroke="#22d3ee"/><text x="500" y="122" class="small">main.tf</text><text x="480" y="150" class="tiny">local.generated_lab_vms</text><text x="480" y="172" class="tiny">for index in range(5)</text><text x="480" y="194" class="tiny">for_each module.lab_vm</text><text x="480" y="216" class="tiny">passes vars to module</text><rect x="780" y="90" width="230" height="170" rx="10" fill="#0f172a" stroke="#34d399"/><text x="835" y="125" class="small">modules/vm/</text><text x="810" y="153" class="tiny">main.tf = VM resource</text><text x="810" y="175" class="tiny">variables.tf = inputs</text><text x="810" y="197" class="tiny">outputs.tf = name/vmid/ip</text><text x="810" y="219" class="tiny">versions.tf = provider</text><rect x="780" y="355" width="230" height="165" rx="10" fill="#0f172a" stroke="#fbbf24"/><text x="830" y="390" class="small">Proxmox action</text><text x="810" y="418" class="tiny">clone template 9000</text><text x="810" y="440" class="tiny">node proxserver1</text><text x="810" y="462" class="tiny">datastore tn-single-disk</text><text x="810" y="484" class="tiny">network vmbr0</text><rect x="780" y="615" width="230" height="90" rx="10" fill="#0f172a" stroke="#fb7185"/><text x="835" y="650" class="small">terraform.tfstate</text><text x="810" y="678" class="tiny">maps config to real VM IDs</text><text x="810" y="698" class="tiny">SENSITIVE - do not edit</text><rect x="45" y="535" width="285" height="115" rx="10" fill="#0f172a" stroke="#34d399"/><text x="75" y="570" class="small">scripts/check-proxmox-capacity.py</text><text x="75" y="598" class="tiny">read-only node/storage check</text><text x="75" y="620" class="tiny">writes generated.auto.tfvars</text><line x1="330" y1="590" x2="455" y2="250" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="455" y="535" width="210" height="90" rx="10" fill="#0f172a" stroke="#34d399"/><text x="480" y="570" class="small">generated.auto.tfvars</text><text x="480" y="598" class="tiny">proxmox_node=proxserver1</text><line x1="560" y1="535" x2="560" y2="255" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/></svg></div></section>
+<section id="vms"><h2>4. What vm_count = 5 means</h2><p><code>main.tf</code> uses <code>range(var.vm_count)</code>. With <code>vm_count = 5</code>, Terraform calculates indexes 0 to 4 and turns them into 5 VM definitions.</p><table><tr><th>Terraform key</th><th>Proxmox VM name</th><th>VMID</th><th>IP/CIDR</th><th>Current plan status</th></tr><tr><td><code>tf_lab_01</code></td><td><code>tf-lab-01</code></td><td>9001</td><td><code>192.0.2.91/24</code></td><td>Existing/preserved</td></tr>
+<tr><td><code>tf_lab_02</code></td><td><code>tf-lab-02</code></td><td>9002</td><td><code>192.0.2.92/24</code></td><td>Will be added</td></tr>
+<tr><td><code>tf_lab_03</code></td><td><code>tf-lab-03</code></td><td>9003</td><td><code>192.0.2.93/24</code></td><td>Will be added</td></tr>
+<tr><td><code>tf_lab_04</code></td><td><code>tf-lab-04</code></td><td>9004</td><td><code>192.0.2.94/24</code></td><td>Will be added</td></tr>
+<tr><td><code>tf_lab_05</code></td><td><code>tf-lab-05</code></td><td>9005</td><td><code>192.0.2.95/24</code></td><td>Will be added</td></tr></table><div class="callout"><b>Latest verified plan:</b> <code>Plan: 4 to add, 0 to change, 0 to destroy.</code> That means VM 1 is already known in state, and VMs 2-5 are ready to be created if you approve an apply.</div></section>
+
+<section id="destroy"><h2>5. What happens when you lower vm_count?</h2>
+<p>This is the most important safety lesson: <code>vm_count</code> is the number of lab VMs you want Terraform to manage. Terraform compares that desired number with what it remembers in <code>terraform.tfstate</code>.</p>
+<div class="grid"><div class="card"><h3>Increase vm_count</h3><p><code>vm_count = 5</code> to <code>vm_count = 6</code></p><p class="ok">Terraform plans to add one more VM.</p></div><div class="card"><h3>Decrease vm_count</h3><p><code>vm_count = 5</code> to <code>vm_count = 4</code></p><p class="danger">Terraform plans to destroy the highest-numbered VM.</p></div><div class="card"><h3>Set vm_count to 0</h3><p><code>vm_count = 5</code> to <code>vm_count = 0</code></p><p class="danger">Terraform would want to destroy all generated lab VMs, but your current validation rule blocks 0.</p></div></div>
+<div class="callout dangerbox"><b>Golden rule:</b> changing the number does not destroy anything by itself. <code>terraform plan</code> only previews. <code>terraform apply</code> is the command that actually destroys/creates VMs.</div>
+<h3>Destroy only the last created/generated VM</h3>
+<p>For your current fleet, the last generated VM is:</p>
+<table><tr><th>Terraform key</th><th>Proxmox name</th><th>VMID</th><th>IP address</th><th>Why it is last</th></tr><tr><td><code>tf_lab_05</code></td><td><code>tf-lab-05</code></td><td><code>9005</code></td><td><code>192.0.2.95/24</code></td><td>It comes from index 4 when <code>vm_count = 5</code>.</td></tr></table>
+<p>To remove only this last VM, change the desired count from 5 to 4:</p>
+<pre><code># In terraform.tfvars
+vm_count = 4</code></pre>
+<p>Then preview only:</p>
+<pre><code>cd /Users/fvistro/homelab/terraform-proxmox-lab
+terraform plan -no-color</code></pre>
+<p>The safe expected result is:</p>
+<pre><code>Plan: 0 to add, 0 to change, 1 to destroy.</code></pre>
+<p>And the destroy should only mention:</p>
+<pre><code>module.lab_vm["tf_lab_05"]</code></pre>
+<div class="callout warning"><b>Stop if Terraform wants to destroy anything else.</b> Do not apply until you understand why the plan changed.</div>
+<p>If the preview is correct and you deliberately approve deleting that VM, use a saved plan:</p>
+<pre><code>terraform plan -out=destroy-last-vm.plan -no-color
+terraform apply destroy-last-vm.plan</code></pre>
+<h3>Simple visual: 5 down to 4</h3>
+<table><tr><th>Before: <code>vm_count = 5</code></th><th>After: <code>vm_count = 4</code></th><th>Terraform action</th></tr><tr><td><code>tf_lab_01</code></td><td><code>tf_lab_01</code></td><td class="ok">Keep</td></tr><tr><td><code>tf_lab_02</code></td><td><code>tf_lab_02</code></td><td class="ok">Keep</td></tr><tr><td><code>tf_lab_03</code></td><td><code>tf_lab_03</code></td><td class="ok">Keep</td></tr><tr><td><code>tf_lab_04</code></td><td><code>tf_lab_04</code></td><td class="ok">Keep</td></tr><tr><td><code>tf_lab_05</code></td><td><span class="muted">not wanted anymore</span></td><td class="danger">Destroy</td></tr></table>
+<h3>What if you change 5 to 0?</h3>
+<p>Conceptually, <code>vm_count = 0</code> means:</p>
+<pre><code>"I want zero lab VMs."</code></pre>
+<p>If 0 were allowed, Terraform would compare the desired empty list with the current five VMs and plan to remove every generated lab VM:</p>
+<table><tr><th>Current VM</th><th>Result if 0 were allowed</th></tr><tr><td><code>tf_lab_01</code> / VMID <code>9001</code> / <code>192.0.2.91</code></td><td class="danger">Destroy</td></tr><tr><td><code>tf_lab_02</code> / VMID <code>9002</code> / <code>192.0.2.92</code></td><td class="danger">Destroy</td></tr><tr><td><code>tf_lab_03</code> / VMID <code>9003</code> / <code>192.0.2.93</code></td><td class="danger">Destroy</td></tr><tr><td><code>tf_lab_04</code> / VMID <code>9004</code> / <code>192.0.2.94</code></td><td class="danger">Destroy</td></tr><tr><td><code>tf_lab_05</code> / VMID <code>9005</code> / <code>192.0.2.95</code></td><td class="danger">Destroy</td></tr></table>
+<div class="callout warning"><b>Your current config has a safety guard:</b> <code>vm_count</code> must be between <code>1</code> and <code>10</code>. So <code>vm_count = 0</code> should fail validation/plan instead of destroying everything.</div>
+<p>If that validation rule were removed later, a full cleanup plan could look like:</p>
+<pre><code>Plan: 0 to add, 0 to change, 5 to destroy.</code></pre>
+<h3>vm_count reduction cheat sheet</h3>
+<table><tr><th>Change</th><th>Terraform would keep</th><th>Terraform would destroy</th></tr><tr><td><code>5 → 4</code></td><td><code>tf_lab_01</code> to <code>tf_lab_04</code></td><td><code>tf_lab_05</code></td></tr><tr><td><code>5 → 3</code></td><td><code>tf_lab_01</code> to <code>tf_lab_03</code></td><td><code>tf_lab_04</code>, <code>tf_lab_05</code></td></tr><tr><td><code>5 → 1</code></td><td><code>tf_lab_01</code></td><td><code>tf_lab_02</code> to <code>tf_lab_05</code></td></tr><tr><td><code>5 → 0</code></td><td>Nothing</td><td>All generated lab VMs, if validation allowed it</td></tr></table>
+<div class="callout"><b>Simple memory card:</b> To add VMs, increase <code>vm_count</code>. To remove the last VM, decrease <code>vm_count</code> by one. To preview safely, run <code>terraform plan</code>. To actually do it, run <code>terraform apply</code> only after approval.</div>
+</section>
+
+<section id="code"><h2>6. Important file snippets, sanitised</h2><p>Secrets are intentionally redacted. The real <code>terraform.tfvars</code> and <code>terraform.tfstate</code> should stay private.</p><details><summary>main.tf</summary><pre><code>locals {
+  generated_lab_vms = {
+    for index in range(var.vm_count) : format(&quot;tf_lab_%02d&quot;, index + 1) =&gt; {
+      vm_id       = var.vmid_start + index
+      name        = format(&quot;%s-%02d&quot;, var.name_prefix, index + 1)
+      ip_cidr     = format(&quot;%s/%d&quot;, cidrhost(var.lab_subnet_cidr, var.ip_start_host + index), var.lab_prefix_length)
+      gateway     = var.gateway
+      cores       = var.default_cores
+      memory_mb   = var.default_memory_mb
+      disk_gb     = var.default_disk_gb
+      datastore   = var.default_datastore
+      bridge      = var.default_bridge
+      description = &quot;Terraform learning VM created from cloud-init template&quot;
+    }
+  }
+}
+
+module &quot;lab_vm&quot; {
+  source = &quot;./modules/vm&quot;
+
+  for_each = local.generated_lab_vms
+
+  proxmox_node   = var.proxmox_node
+  template_vm_id = var.template_vm_id
+  template_node  = var.template_node
+
+  vm_id       = each.value.vm_id
+  name        = each.value.name
+  description = each.value.description
+  ip_cidr     = each.value.ip_cidr
+  gateway     = each.value.gateway
+  cores       = each.value.cores
+  memory_mb   = each.value.memory_mb
+  disk_gb     = each.value.disk_gb
+  datastore   = each.value.datastore
+  bridge      = each.value.bridge
+
+  ssh_username   = var.ssh_username
+  ssh_public_key = var.ssh_public_key
+}
+</code></pre></details>
+<details><summary>variables.tf</summary><pre><code>variable &quot;proxmox_endpoint&quot; {
+  description = &quot;Proxmox API endpoint, for example https://192.0.2.133:8006/api2/json&quot;
+  type        = string
+}
+
+variable &quot;proxmox_api_token&quot; {
+  description = &quot;Proxmox API token in bpg provider format: terraform@pve!homelab=TOKEN_VALUE&quot;
+  type        = string
+  sensitive   = true
+}
+
+variable &quot;proxmox_node&quot; {
+  description = &quot;Target Proxmox node name. This is generated dynamically in generated.auto.tfvars by the capacity checker.&quot;
+  type        = string
+  default     = &quot;proxmox3&quot;
+}
+
+variable &quot;template_node&quot; {
+  description = &quot;Proxmox node where the source template VM config lives. Template VM 9000 currently lives on proxmox3.&quot;
+  type        = string
+  default     = &quot;proxmox3&quot;
+}
+
+variable &quot;template_vm_id&quot; {
+  description = &quot;Cloud-init template VM ID to clone from.&quot;
+  type        = number
+  default     = 9000
+}
+
+variable &quot;vm_count&quot; {
+  description = &quot;Number of lab VMs to create from the template. Keep this between 1 and 10 for this learning lab.&quot;
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.vm_count &gt;= 1 &amp;&amp; var.vm_count &lt;= 10
+    error_message = &quot;vm_count must be between 1 and 10 for this lab. Increase deliberately only after capacity/IP checks.&quot;
+  }
+}
+
+variable &quot;vmid_start&quot; {
+  description = &quot;First Proxmox VM ID for generated lab VMs. VM 1 uses this ID, VM 2 uses this ID + 1, and so on.&quot;
+  type        = number
+  default     = 9001
+}
+
+variable &quot;ip_start_host&quot; {
+  description = &quot;First host number inside lab_subnet_cidr. With 192.0.2.0/24 and 91, VM 1 gets 192.0.2.91.&quot;
+  type        = number
+  default     = 91
+}
+
+variable &quot;lab_subnet_cidr&quot; {
+  description = &quot;Subnet used to calculate generated VM IP addresses.&quot;
+  type        = string
+  default     = &quot;192.0.2.0/24&quot;
+}
+
+variable &quot;lab_prefix_length&quot; {
+  description = &quot;Prefix length appended to generated VM IP addresses.&quot;
+  type        = number
+  default     = 24
+}
+
+variable &quot;gateway&quot; {
+  description = &quot;Default gateway for generated lab VMs.&quot;
+  type        = string
+  default     = &quot;192.0.2.1&quot;
+}
+
+variable &quot;name_prefix&quot; {
+  description = &quot;Prefix for generated VM names.&quot;
+  type        = string
+  default     = &quot;tf-lab&quot;
+}
+
+variable &quot;default_cores&quot; {
+  description = &quot;CPU cores per generated lab VM.&quot;
+  type        = number
+  default     = 2
+}
+
+variable &quot;default_memory_mb&quot; {
+  description = &quot;Memory in MB per generated lab VM.&quot;
+  type        = number
+  default     = 2048
+}
+
+variable &quot;default_disk_gb&quot; {
+  description = &quot;Disk size in GB per generated lab VM.&quot;
+  type        = number
+  default     = 20
+}
+
+variable &quot;default_datastore&quot; {
+  description = &quot;Datastore for generated lab VM disks and cloud-init data.&quot;
+  type        = string
+  default     = &quot;tn-single-disk&quot;
+}
+
+variable &quot;default_bridge&quot; {
+  description = &quot;Network bridge for generated lab VMs.&quot;
+  type        = string
+  default     = &quot;vmbr0&quot;
+}
+
+variable &quot;ssh_username&quot; {
+  description = &quot;Linux user cloud-init should create/use in the VM.&quot;
+  type        = string
+  default     = &quot;fvistro&quot;
+}
+
+variable &quot;ssh_public_key&quot; {
+  description = &quot;Public SSH key injected by cloud-init.&quot;
+  type        = string
+}
+</code></pre></details>
+<details><summary>terraform.tfvars (sanitised)</summary><pre><code># Do not commit terraform.tfvars. It is ignored by .gitignore.
+# proxmox_node is generated dynamically in generated.auto.tfvars by scripts/check-proxmox-capacity.py
+
+proxmox_endpoint = &quot;https://192.0.2.133:8006/api2/json&quot;
+template_node    = &quot;proxmox3&quot;
+template_vm_id   = 9000
+ssh_username     = &quot;fvistro&quot;
+ssh_public_key   = &quot;ssh-ed25519 ***REDACTED*** hermes@minibob&quot;
+
+# bpg/proxmox provider token format:
+# proxmox_api_token = &quot;terraform@pve!homelab=PASTE_TOKEN_SECRET_HERE&quot;
+proxmox_api_token = &quot;terraform@pve!homelab=***REDACTED***&quot;
+
+# Generated VM fleet settings.
+# Existing VM remains tf_lab_01 -&gt; VMID 9001 -&gt; 192.0.2.91.
+# vm_count = 5 will add tf_lab_02 through tf_lab_05.
+vm_count          = 5
+vmid_start        = 9001
+ip_start_host     = 91
+lab_subnet_cidr   = &quot;192.0.2.0/24&quot;
+lab_prefix_length = 24
+gateway           = &quot;192.0.2.1&quot;
+name_prefix       = &quot;tf-lab&quot;
+default_cores     = 2
+default_memory_mb = 2048
+default_disk_gb   = 20
+default_datastore = &quot;tn-single-disk&quot;
+default_bridge    = &quot;vmbr0&quot;</code></pre></details>
+<details><summary>generated.auto.tfvars</summary><pre><code># Generated by scripts/check-proxmox-capacity.py
+# Generated at: 2026-07-13T07:41:24
+# Purpose: dynamic Proxmox node placement for the Terraform learning lab.
+#
+# Terraform automatically loads *.auto.tfvars files in this directory.
+# This file must contain only non-secret values. Do not put API tokens,
+# passwords, or private keys here.
+
+proxmox_node = &quot;proxserver1&quot;
+</code></pre></details>
+<details><summary>modules/vm/main.tf</summary><pre><code>resource &quot;proxmox_virtual_environment_vm&quot; &quot;this&quot; {
+  name        = var.name
+  description = var.description
+  node_name   = var.proxmox_node
+  vm_id       = var.vm_id
+
+  clone {
+    vm_id        = var.template_vm_id
+    node_name    = var.template_node
+    datastore_id = var.datastore
+    full         = true
+  }
+
+  agent {
+    enabled = true
+  }
+
+  cpu {
+    cores = var.cores
+    type  = &quot;host&quot;
+  }
+
+  memory {
+    dedicated = var.memory_mb
+  }
+
+  disk {
+    datastore_id = var.datastore
+    interface    = &quot;scsi0&quot;
+    size         = var.disk_gb
+  }
+
+  network_device {
+    bridge = var.bridge
+  }
+
+  initialization {
+    datastore_id = var.datastore
+
+    user_account {
+      username = var.ssh_username
+      keys     = [var.ssh_public_key]
+    }
+
+    ip_config {
+      ipv4 {
+        address = var.ip_cidr
+        gateway = var.gateway
+      }
+    }
+  }
+}
+</code></pre></details>
+<details><summary>scripts/check-proxmox-capacity.py</summary><pre><code>#!/usr/bin/env python3
+&quot;&quot;&quot;
+Read-only Proxmox capacity checker for Farrukh&#x27;s Terraform lab.
+
+What it does:
+- SSH to the AWX jump host.
+- From AWX, SSH to proxmox3.
+- Query Proxmox cluster node status with pvesh.
+- Query per-node storage status for the selected datastore.
+- Recommend a node that has enough free RAM and disk for the requested VM.
+
+This script does NOT create, modify, start, stop, or delete anything.
+&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+AWX_HOST = &quot;root@192.0.2.6&quot;
+PROXMOX_SSH = &quot;ansible@192.0.2.133&quot;
+DEFAULT_DATASTORE = &quot;local&quot;
+DEFAULT_AUTO_TFVARS = &quot;generated.auto.tfvars&quot;
+
+
+@dataclass
+class Candidate:
+    node: str
+    status: str
+    cpu_pct: float
+    maxcpu: int
+    total_ram_gb: float
+    used_ram_gb: float
+    free_ram_gb: float
+    datastore: str
+    total_disk_gb: float | None
+    used_disk_gb: float | None
+    free_disk_gb: float | None
+    eligible: bool
+    reason: str
+    score: float
+
+
+def gib(value: int | float | None) -&gt; float | None:
+    if value is None:
+        return None
+    return float(value) / 1024 / 1024 / 1024
+
+
+def run_remote(command: str) -&gt; str:
+    &quot;&quot;&quot;Run a read-only command on proxmox3 via the AWX jump host.&quot;&quot;&quot;
+    if shutil.which(&quot;ssh&quot;) is None:
+        raise SystemExit(&quot;ssh command not found&quot;)
+
+    outer = [
+        &quot;ssh&quot;,
+        &quot;-o&quot;,
+        &quot;BatchMode=yes&quot;,
+        &quot;-o&quot;,
+        &quot;ConnectTimeout=8&quot;,
+        AWX_HOST,
+        &quot;ssh -o BatchMode=yes -o ConnectTimeout=8 &quot; + PROXMOX_SSH + &quot; &quot; + json.dumps(command),
+    ]
+    result = subprocess.run(outer, text=True, capture_output=True, timeout=60)
+    if result.returncode != 0:
+        print(result.stderr, file=sys.stderr)
+        raise SystemExit(f&quot;Remote command failed with exit code {result.returncode}&quot;)
+    return result.stdout.strip()
+
+
+def pvesh_json(path: str) -&gt; Any:
+    cmd = f&quot;sudo -n pvesh get {path} --output-format json&quot;
+    raw = run_remote(cmd)
+    return json.loads(raw)
+
+
+def storage_status(node: str, datastore: str) -&gt; dict[str, Any] | None:
+    try:
+        return pvesh_json(f&quot;/nodes/{node}/storage/{datastore}/status&quot;)
+    except Exception:
+        return None
+
+
+def build_candidates(nodes: list[dict[str, Any]], datastore: str, min_ram_gb: float, min_disk_gb: float) -&gt; list[Candidate]:
+    candidates: list[Candidate] = []
+
+    for item in nodes:
+        node = item.get(&quot;node&quot;, &quot;unknown&quot;)
+        status = item.get(&quot;status&quot;, &quot;unknown&quot;)
+        cpu_pct = float(item.get(&quot;cpu&quot;) or 0) * 100
+        maxcpu = int(item.get(&quot;maxcpu&quot;) or 0)
+        total_ram = gib(item.get(&quot;maxmem&quot;)) or 0
+        used_ram = gib(item.get(&quot;mem&quot;)) or 0
+        free_ram = max(total_ram - used_ram, 0)
+
+        st = storage_status(node, datastore)
+        total_disk = used_disk = free_disk = None
+        if st:
+            total_disk = gib(st.get(&quot;total&quot;))
+            used_disk = gib(st.get(&quot;used&quot;))
+            free_disk = gib(st.get(&quot;avail&quot;))
+
+        reasons = []
+        eligible = True
+        if status != &quot;online&quot;:
+            eligible = False
+            reasons.append(&quot;node offline&quot;)
+        if free_ram &lt; min_ram_gb:
+            eligible = False
+            reasons.append(f&quot;free RAM {free_ram:.1f} GiB &lt; required {min_ram_gb:.1f} GiB&quot;)
+        if free_disk is None:
+            eligible = False
+            reasons.append(f&quot;datastore {datastore} not available/readable&quot;)
+        elif free_disk &lt; min_disk_gb:
+            eligible = False
+            reasons.append(f&quot;free disk {free_disk:.1f} GiB &lt; required {min_disk_gb:.1f} GiB&quot;)
+
+        if not reasons:
+            reasons.append(&quot;ok&quot;)
+
+        # Simple scoring for learning:
+        # prioritize free RAM, then free disk, then lower CPU usage.
+        score = (free_ram * 10) + ((free_disk or 0) / 100) - cpu_pct
+
+        candidates.append(
+            Candidate(
+                node=node,
+                status=status,
+                cpu_pct=cpu_pct,
+                maxcpu=maxcpu,
+                total_ram_gb=total_ram,
+                used_ram_gb=used_ram,
+                free_ram_gb=free_ram,
+                datastore=datastore,
+                total_disk_gb=total_disk,
+                used_disk_gb=used_disk,
+                free_disk_gb=free_disk,
+                eligible=eligible,
+                reason=&quot;; &quot;.join(reasons),
+                score=score,
+            )
+        )
+    return candidates
+
+
+def print_table(candidates: list[Candidate]) -&gt; None:
+    headers = [
+        &quot;Node&quot;,
+        &quot;Status&quot;,
+        &quot;CPU%&quot;,
+        &quot;Cores&quot;,
+        &quot;RAM free/total GiB&quot;,
+        &quot;Disk free/total GiB&quot;,
+        &quot;Eligible&quot;,
+        &quot;Reason&quot;,
+    ]
+    rows = []
+    for c in candidates:
+        disk_text = &quot;n/a&quot;
+        if c.free_disk_gb is not None and c.total_disk_gb is not None:
+            disk_text = f&quot;{c.free_disk_gb:.1f}/{c.total_disk_gb:.1f}&quot;
+        rows.append(
+            [
+                c.node,
+                c.status,
+                f&quot;{c.cpu_pct:.1f}&quot;,
+                str(c.maxcpu),
+                f&quot;{c.free_ram_gb:.1f}/{c.total_ram_gb:.1f}&quot;,
+                disk_text,
+                &quot;yes&quot; if c.eligible else &quot;no&quot;,
+                c.reason,
+            ]
+        )
+
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for idx, value in enumerate(row):
+            widths[idx] = max(widths[idx], len(value))
+
+    print(&quot;  &quot;.join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    print(&quot;  &quot;.join(&quot;-&quot; * widths[i] for i in range(len(headers))))
+    for row in rows:
+        print(&quot;  &quot;.join(row[i].ljust(widths[i]) for i in range(len(headers))))
+
+
+def write_auto_tfvars(path: str, best: Candidate) -&gt; Path:
+    &quot;&quot;&quot;Write non-secret Terraform placement values for automatic loading.&quot;&quot;&quot;
+    output_path = Path(path)
+    content = f&#x27;&#x27;&#x27;# Generated by scripts/check-proxmox-capacity.py
+# Generated at: {datetime.now().isoformat(timespec=&quot;seconds&quot;)}
+# Purpose: dynamic Proxmox node placement for the Terraform learning lab.
+#
+# Terraform automatically loads *.auto.tfvars files in this directory.
+# This file must contain only non-secret values. Do not put API tokens,
+# passwords, or private keys here.
+
+proxmox_node = &quot;{best.node}&quot;
+&#x27;&#x27;&#x27;
+    output_path.write_text(content)
+    return output_path
+
+
+def main() -&gt; int:
+    parser = argparse.ArgumentParser(description=&quot;Read-only Proxmox node capacity checker&quot;)
+    parser.add_argument(&quot;--memory-gb&quot;, type=float, default=2.0, help=&quot;Required free RAM in GiB for the new VM&quot;)
+    parser.add_argument(&quot;--disk-gb&quot;, type=float, default=20.0, help=&quot;Required free disk in GiB for the new VM&quot;)
+    parser.add_argument(&quot;--datastore&quot;, default=DEFAULT_DATASTORE, help=&quot;Datastore to check on each node&quot;)
+    parser.add_argument(
+        &quot;--write-auto-tfvars&quot;,
+        action=&quot;store_true&quot;,
+        help=&quot;Write the recommended proxmox_node into generated.auto.tfvars for Terraform to auto-load&quot;,
+    )
+    parser.add_argument(
+        &quot;--auto-tfvars-path&quot;,
+        default=DEFAULT_AUTO_TFVARS,
+        help=&quot;Path for generated *.auto.tfvars output when --write-auto-tfvars is used&quot;,
+    )
+    args = parser.parse_args()
+
+    print(&quot;Read-only Proxmox capacity check&quot;)
+    print(f&quot;Required VM capacity: RAM &gt;= {args.memory_gb:.1f} GiB, disk &gt;= {args.disk_gb:.1f} GiB&quot;)
+    print(f&quot;Datastore checked: {args.datastore}&quot;)
+    print()
+
+    nodes = pvesh_json(&quot;/nodes&quot;)
+    candidates = build_candidates(nodes, args.datastore, args.memory_gb, args.disk_gb)
+    candidates.sort(key=lambda c: (not c.eligible, -c.score, c.node))
+
+    print_table(candidates)
+    print()
+
+    eligible = [c for c in candidates if c.eligible]
+    if not eligible:
+        print(&quot;Recommendation: no eligible node found for this VM size/datastore.&quot;)
+        return 2
+
+    best = eligible[0]
+    print(f&quot;Recommendation: use proxmox_node = \&quot;{best.node}\&quot;&quot;)
+    print(f&quot;Why: {best.free_ram_gb:.1f} GiB RAM free, {best.free_disk_gb:.1f} GiB datastore free, CPU currently {best.cpu_pct:.1f}%&quot;)
+    if args.write_auto_tfvars:
+        written = write_auto_tfvars(args.auto_tfvars_path, best)
+        print()
+        print(f&quot;Wrote Terraform auto variables: {written}&quot;)
+        print(f&quot;Terraform will automatically load this file on the next plan/apply: {written.name}&quot;)
+    print()
+    print(&quot;Learning note:&quot;)
+    print(&quot;Terraform will not make this choice by itself. This script chooses a node first; then Terraform uses that node_name.&quot;)
+    return 0
+
+
+if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())
+</code></pre></details>
+<details><summary>providers.tf</summary><pre><code>provider &quot;proxmox&quot; {
+  endpoint  = var.proxmox_endpoint
+  api_token = var.proxmox_api_token
+  insecure  = true
+}
+</code></pre></details>
+<details><summary>outputs.tf</summary><pre><code>output &quot;lab_vm_summary&quot; {
+  description = &quot;Created lab VM names and IP addresses.&quot;
+  value = {
+    for key, vm in module.lab_vm : key =&gt; {
+      name  = vm.name
+      vm_id = vm.vm_id
+      ip    = vm.ip_cidr
+    }
+  }
+}
+</code></pre></details>
+<details><summary>terraform.tfvars.example</summary><pre><code># Copy this file to terraform.tfvars and fill in the token value yourself.
+# Do not commit terraform.tfvars. It is ignored by .gitignore.
+# proxmox_node is generated dynamically in generated.auto.tfvars by scripts/check-proxmox-capacity.py
+
+proxmox_endpoint = &quot;https://192.0.2.133:8006/api2/json&quot;
+template_node    = &quot;proxmox3&quot;
+template_vm_id   = 9000
+ssh_username     = &quot;fvistro&quot;
+ssh_public_key   = &quot;ssh-ed25519 REPLACE_ME&quot;
+
+# bpg/proxmox provider token format:
+# proxmox_api_token = &quot;terraform@pve!homelab=PASTE_TOKEN_SECRET_HERE&quot;
+proxmox_api_token = &quot;terraform@pve!homelab=REPLACE_ME&quot;
+
+# Generated VM fleet settings.
+# vm_count controls how many VMs Terraform declares.
+# Example: vm_count = 5 creates tf-lab-01..tf-lab-05 using VMIDs 9001..9005 and IPs 192.0.2.91..192.0.2.95.
+vm_count          = 5
+vmid_start        = 9001
+ip_start_host     = 91
+lab_subnet_cidr   = &quot;192.0.2.0/24&quot;
+lab_prefix_length = 24
+gateway           = &quot;192.0.2.1&quot;
+name_prefix       = &quot;tf-lab&quot;
+default_cores     = 2
+default_memory_mb = 2048
+default_disk_gb   = 20
+default_datastore = &quot;tn-single-disk&quot;
+default_bridge    = &quot;vmbr0&quot;
+</code></pre></details>
+<details><summary>.gitignore</summary><pre><code>.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+terraform.tfvars
+*.auto.tfvars
+crash.log
+crash.*.log
+*.tfplan
+</code></pre></details></section>
+<section id="commands"><h2>7. Safe command flow</h2><pre><code># 1. Format and validate only - safe
+terraform fmt -recursive
+terraform validate
+
+# 2. Preview only - safe/read-only against infrastructure
+terraform plan -no-color
+
+# 3. Optional: save a plan for exactly what will be applied
+terraform plan -out=tf-lab-fleet.plan -no-color
+
+# 4. Infrastructure-changing step - run only after approval
+terraform apply tf-lab-fleet.plan</code></pre><p>The capacity helper is also read-only until you pass <code>--write-auto-tfvars</code>:</p><pre><code>python3 scripts/check-proxmox-capacity.py --datastore tn-single-disk
+python3 scripts/check-proxmox-capacity.py --datastore tn-single-disk --write-auto-tfvars</code></pre></section>
+<section id="safety"><h2>8. Safety notes</h2><div class="callout dangerbox"><b>Do not publish:</b> <code>terraform.tfvars</code>, <code>terraform.tfstate</code>, <code>*.tfstate.backup</code>, API tokens, private keys, or full SSH keys.</div><div class="callout warning"><b>Do not run apply casually:</b> <code>terraform apply</code> will create real Proxmox VMs. Current plan creates 4 new VMs.</div><div class="callout"><b>Easy mental model:</b> variables decide numbers → main.tf builds the list → module/vm creates each VM → state remembers what exists.</div></section>
+</main></body></html>

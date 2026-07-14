@@ -1,0 +1,15 @@
+variable "proxmox_node" { type = string }
+variable "template_vm_id" { type = number }
+variable "template_node" { type = string }
+variable "vm_id" { type = number }
+variable "name" { type = string }
+variable "description" { type = string }
+variable "ip_cidr" { type = string }
+variable "gateway" { type = string }
+variable "cores" { type = number }
+variable "memory_mb" { type = number }
+variable "disk_gb" { type = number }
+variable "datastore" { type = string }
+variable "bridge" { type = string }
+variable "ssh_username" { type = string }
+variable "ssh_public_key" { type = string }
